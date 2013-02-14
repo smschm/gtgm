@@ -83,3 +83,7 @@
 	 (push (elt (hands g) player) card)
 	 (setf status t))))
     status))
+
+(defmethod score-game ((g game-state))
+  (loop for t in (trails g) collect
+       (loop for p across t summing (score-pile p))))
