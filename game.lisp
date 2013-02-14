@@ -1,3 +1,11 @@
+(defpackage :gt-game
+  (:use :common-lisp :s-xml-rpc))
+(in-package :gt-game)
+
+(defparameter +ranks+ (append '(0 0 0) (loop for i from 2 below 11 collect i)))
+(defparameter +suits+ 5)
+(defparameter +init-hand-size+ 8)
+
 (defun shuffle (list)
   (if (< (length list) 2) list
       (let ((item (elt list (random (length list)))))
@@ -6,8 +14,7 @@
 (defun make-fresh-deck ()
   (apply #'append
 	 (loop for suit below 5 collect
-	      (loop for rank in
-		   (append '(0 0 0) (loop for i from 2 below 11 collect i))
+	      (loop for rank in +ranks+
 		 collect (cons suit rank)))))
 
 (defun score-pile (pile &key (penalized nil) (total 0) (multiplier 1))
@@ -22,16 +29,16 @@
   ((started :initform nil :accessor started)
    (hands :initform '(nil nil) :accessor hands)
    (deck :initform (shuffle (make-fresh-deck)) :accessor deck)
-   (discards :initform (make-array 5 :initial-element nil) :accessor discards)
-   (trails :initform (list (make-array 5 :initial-element nil)
-			   (make-array 5 :initial-element nil))
+   (discards :initform (make-array +suits+ :initial-element nil) :accessor discards)
+   (trails :initform (list (make-array +suits+ :initial-element nil)
+			   (make-array +suits+ :initial-element nil))
 	   :accessor trails)))
 
 (defmethod start-game ((g game-state))
   (setf (started g) t
-	(hands g) (list (subseq (deck g) 0 8)
-			(subseq (deck g) 8 16))
-	(deck g) (subseq (deck g) 16)))
+	(hands g) (list (subseq (deck g) 0 +init-hand-size+)
+			(subseq (deck g) +init-hand-size+ (* 2 +init-hand-size+)))
+	(deck g) (subseq (deck g) (* 2 +init-hand-size+))))
 
 (defmethod expedition-max ((g game-state) player suit)
   (let ((expn (elt (elt (trails g) player) suit)))
