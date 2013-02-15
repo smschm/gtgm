@@ -41,7 +41,12 @@ Signals the PC that the game is beginning.
 
 Requests a location to play a card to.
 
-**Parameters:** None.
+**Parameters:**
+
+* `hand` (array) Array of cards in hand.
+* `discards` (array of array) Array of discard piles.
+* `expos0` (array of array) Expeditions for player 0.
+* `expos1` (array of array) Expeditions for player 1.
 
 **Response:** A struct containing fields named:
 
@@ -55,21 +60,6 @@ Requests a location to play a card to.
   **Note:** Drawing from a discard when it is empty will silently
   draw from the deck.
 
-### `drawnCard`
-
-Gives the response about the card drawn from `getPlay`.
-
-**Parameters:**
-
-* `card_drawn` (card) The drawn card. This is also a card struct with fields
-  `rank` and `suit`.
-* `hand` (array) Your new hand of cards. The drawn card will be guaranteed to
-  go to the front of your hand (index 0), pushing back other cards; therefore
-  `hand` can be deduced, this parameter is just informational.
-  
-**Response:** A boolean. True confirms the card received. A false can signal that
-the PC protests their card, but the GM will ignore this.
-
 ### `opponentPlay`
 
 Gives information about an opponent play.
@@ -82,7 +72,8 @@ Gives information about an opponent play.
 * `draw_from` (int) Where the card was drawn from; -1 from the deck,
   0-4 for the corresponding suit's discard pile.
   
-**Response:** A boolean. Again, false signals protest.
+**Response:** A boolean. True confirms the card recieved. A false can signal that
+the PC protests their card, but the GM will ignore this.
 
 ### `gameEnd`
 
