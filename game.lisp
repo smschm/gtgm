@@ -1,5 +1,7 @@
 (defpackage :gt-game
-  (:use :common-lisp :s-xml-rpc))
+  (:use :common-lisp :s-xml-rpc)
+  (:export :game-state :start-game :place-card :player-draw-card :score-game
+           :deck :discards :hands :trails))
 (in-package :gt-game)
 
 (defparameter +ranks+ (append '(0 0 0) (loop for i from 2 below 11 collect i)))
@@ -85,5 +87,5 @@
     status))
 
 (defmethod score-game ((g game-state))
-  (loop for t in (trails g) collect
-       (loop for p across t summing (score-pile p))))
+  (loop for tr in (trails g) collect
+       (loop for p across tr summing (score-pile p))))
