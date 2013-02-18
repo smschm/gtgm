@@ -15,7 +15,7 @@
   `(progn (princ (quote ,@expr)) ,@expr))
 
 (defun card-to-struct (c) (if (null c) 0 (xml-rpc-struct :|rank| (cdr c) :|suit| (car c))))
-(defun cardlist-to-xml (cs) (mapcar #'card-to-struct cs))
+(defun cardlist-to-xml (cs) (map 'vector #'card-to-struct cs))
 (defun cardlistvector-to-xml (csv) (map 'vector #'cardlist-to-xml csv))
 
 (defun game-runner (player-uris)
@@ -38,16 +38,14 @@
     (player-call 1 "initialize" 0 0 ; opponent id = game id = 0 for now
                  1 (mapcar #'card-to-struct (elt (hands g) 1)))
     (block outer (loop do
-         (let* ((r0 (player-call turn "getPlay"
-                                 (cardlist-to-xml (elt (hands g) turn))
-                                 ;(map 'vector
-				 ;     (lambda (x) (and (null x) (car x)))
-				 ;     (discards g))
+         (let* ((r0 (player-call
+		     turn "getPlay"
+		     (cardlist-to-xml (elt (hands g) turn))
 				 (cardlistvector-to-xml (discards g))
                                  (cardlistvector-to-xml (elt (trails g) turn))
                                  (cardlistvector-to-xml
 				  (elt (trails g) (- 1 turn)))))
-                (card-ix (get-xml-rpc-struct-member r0 :|card_ix|)) ; TODO: replace with macro above
+                (card-ix (get-xml-rpc-struct-member r0 :|card_ix|))
                 (play-to (get-xml-rpc-struct-member r0 :|play_to|))
                 (draw-from (get-xml-rpc-struct-member r0 :|draw_from|))
                 (card-played (elt (elt (hands g) turn) card-ix)))
