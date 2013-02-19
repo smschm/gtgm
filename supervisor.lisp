@@ -22,13 +22,13 @@
 (defun cardlistmatrix-to-xml (csm)
   (map 'vector #'identity
        (loop for i below 2 collect
-	    (map 'vector #'cardlist-to-xml
-		 (loop for j below gt-game::+suits+ collect (aref csm i j))))))
+            (map 'vector #'cardlist-to-xml
+                 (loop for j below gt-game::+suits+ collect (aref csm i j))))))
 
 (defun game-runner (player-uris)
   ; player uris should be of the form
   ; ((player0-uri . player0-port) (player1-uri . player1-port))
-  
+
   ; confirm both players are ready
   ;(if (not (xml-rpc-call (encode-xml-rpc-call "startGame")
   ;                       :host player0-uri :port player0-port))
@@ -46,12 +46,11 @@
                  1 (mapcar #'card-to-struct (elt (hands g) 1)))
     (block outer (loop do
          (let* ((r0 (player-call
-		     turn "getPlay"
-		     (cardlist-to-xml (elt (hands g) turn))
-		     (cardlistvector-to-xml (discards g))
-		     (cardlistmatrix-to-xml (expos g))
-		     (length (deck g))))
-		;(dummy (describe r0))
+             turn "getPlay"
+             (cardlist-to-xml (elt (hands g) turn))
+             (cardlistvector-to-xml (discards g))
+             (cardlistmatrix-to-xml (expos g))
+             (length (deck g))))
                 (card-ix (get-xml-rpc-struct-member r0 :|card_ix|))
                 (play-to-raw (get-xml-rpc-struct-member r0 :|play_to|))
                 (play-to (if (= play-to-raw 0) :discard :expo))
@@ -66,7 +65,8 @@
            (if (and (equal play-to :discard)
                     (= (car card-played) draw-from))
                ; trying to draw the discarded card
-               (progn (format t "trying to draw discarded!") (setf draw-from -1)))
+               (progn (format t "trying to draw discarded!") (terpri)
+                      (setf draw-from -1)))
            (if (equalp :drew-from-deck
                        (player-draw-card g turn
                                          (if (< draw-from 0) :deck :discard)
@@ -80,5 +80,3 @@
       (player-call 0 "gameEnd" (car scores) (cadr scores))
       (player-call 1 "gameEnd" (car scores) (cadr scores))
       (if (> (car scores) (cadr scores)) 0 1))))
-                               
-                             

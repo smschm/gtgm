@@ -14,13 +14,13 @@
 (defun shuffle (list)
   (if (< (length list) 2) list
       (let ((item (elt list (random (length list)))))
-	(cons item (shuffle (delete item list))))))
+        (cons item (shuffle (delete item list))))))
 
 (defun make-fresh-deck ()
   (apply #'append
-	 (loop for suit below 5 collect
-	      (loop for rank in +ranks+
-		 collect (cons suit rank)))))
+         (loop for suit below 5 collect
+              (loop for rank in +ranks+
+                 collect (cons suit rank)))))
 
 #|
 (defun score-pile-v (pile)
@@ -48,7 +48,6 @@
                     (incf total (cdr c)))))
     (+ (* multiplier (+ penalty total))
        (if (>= (length pile) 8) 20 0))))
-                
 
 ;(defclass game-state ()
 ;  ((started :initform nil :accessor started)
@@ -71,12 +70,12 @@
 (defclass game-state ()
   ((started :initform nil :accessor started)
    (hands :initform (make-array 2 :initial-element nil)
-	  :accessor hands)
+          :accessor hands)
    (deck :initform (shuffle (make-fresh-deck)) :accessor deck)
    (discards :initform (make-array +suits+ :initial-element nil)
-	     :accessor discards)
+             :accessor discards)
    (expos :initform (make-array '(2 5) :initial-element nil)
-	   :accessor expos)))
+          :accessor expos)))
 
 (defmethod start-game ((g game-state))
   (setf (started g) t
@@ -85,38 +84,38 @@
 ;			  (make-adj-vector-from
 ;			   (subseq (deck g) (* i +init-hand-size+)
 ;				   (* (1+ i) +init-hand-size+)))))
-	(hands g) (make-array 2 :initial-contents
-		     (loop for i below 2 collect
-			  (subseq (deck g) (* i +init-hand-size+)
-				   (* (1+ i) +init-hand-size+))))
-	(deck g) (subseq (deck g) (* 2 +init-hand-size+))))
+        (hands g) (make-array 2 :initial-contents
+                              (loop for i below 2 collect
+                                   (subseq (deck g) (* i +init-hand-size+)
+                                           (* (1+ i) +init-hand-size+))))
+        (deck g) (subseq (deck g) (* 2 +init-hand-size+))))
 
 (defmethod expedition-max ((g game-state) player suit)
   (let ((expn (aref (expos g) player suit)))
     (if (null expn) 0
-	(cdar expn))))
+        (cdar expn))))
 
 (defmethod place-card ((g game-state) player card-ix where)
   (let* ((player-hand (elt (hands g) player))
-	 (card (elt player-hand card-ix))
-	 (suit (car card))
-	 (rank (cdr card))
-	 (remaining-cards (append (subseq player-hand 0 card-ix)
-				  (subseq player-hand (1+ card-ix))))
-	 (card-placed t)
-	 (status nil))
+         (card (elt player-hand card-ix))
+         (suit (car card))
+         (rank (cdr card))
+         (remaining-cards (append (subseq player-hand 0 card-ix)
+                                  (subseq player-hand (1+ card-ix))))
+         (card-placed t)
+         (status nil))
     (case where
       ((:discard)
        (progn (setf (elt (discards g) suit)
-		    (cons card (elt (discards g) suit)))
-	      ; why doesn't push work here?
-	      (setf status t)))
+                    (cons card (elt (discards g) suit)))
+                    ; why doesn't push work here?
+              (setf status t)))
       ((:expo)
        (if (< rank (expedition-max g player suit))
-	   (progn (place-card g player card-ix :discard)
-		  (setf card-placed nil status :discarded-instead))
-	   (progn (push card (aref (expos g) player suit))
-		  (setf status t))))
+           (progn (place-card g player card-ix :discard)
+                  (setf card-placed nil status :discarded-instead))
+           (progn (push card (aref (expos g) player suit))
+                  (setf status t))))
       (otherwise (setf card-placed nil)))
     (if card-placed (setf (elt (hands g) player) remaining-cards))
     status))
@@ -126,20 +125,20 @@
     (case where
       ((:discard)
        (if (null (elt (discards g) pile-ix))
-	   (progn (player-draw-card g player :deck)
-		  (setf status :drew-from-deck))
-	   (let ((card (pop (elt (discards g) pile-ix))))
-	     ;(push (elt (hands g) player) card)
-	     (setf (elt (hands g) player)
-		   (cons card (elt (hands g) player)))
-	     (setf status t))))
+           (progn (player-draw-card g player :deck)
+                  (setf status :drew-from-deck))
+           (let ((card (pop (elt (discards g) pile-ix))))
+                                        ;(push (elt (hands g) player) card)
+             (setf (elt (hands g) player)
+                   (cons card (elt (hands g) player)))
+             (setf status t))))
       ((:deck)
        (let ((card (pop (deck g))))
 	 ;(format t "pushing card ~A onto ~A~%" card (elt (hands g) player))
 	 ;(push (elt (hands g) player) card)
-	 (setf (elt (hands g) player)
-	       (cons card (elt (hands g) player)))
-	 (setf status t))))
+         (setf (elt (hands g) player)
+               (cons card (elt (hands g) player)))
+         (setf status t))))
     status))
 
 (defmethod score-game ((g game-state))
