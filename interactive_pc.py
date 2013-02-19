@@ -50,7 +50,7 @@ class GTPC(xmlrpc.XMLRPC):
                 sys.stdout.write('    ')
             for c in our_expos[i]:
                 format_card(c)
-            sys.stdout.write(' |    ')
+            sys.stdout.write(' |  %d ' % i)
             if (len(discards[i]) == 0):
                 format_card({'suit': i, 'rank': 1})
             else:
@@ -107,7 +107,18 @@ class GTPC(xmlrpc.XMLRPC):
         return True
 
     def xmlrpc_gameEnd(self, score0, score1):
-        print "game over! score0=", score0, "score1=", score1
+        if self.player_num == 1:
+            score1, score0 = score0, score1
+        print "game over!"
+        print "your score:    ", score0
+        print "opponent score:", score1
+        print "you are",
+        if score0 > score1:
+            print "win!"
+        elif score0 == score1:
+            print "tie!"
+        else:
+            print "lose!"
         return True
 
 if __name__ == '__main__':

@@ -31,7 +31,7 @@ Signals the PC that the game is beginning.
 * `player_num` (int) 0 if you are the first player, 1 if you are second.
 * `hand` (array) An array of cards in hand. The order is significant,
   as a card's index will be used to identify it later.
-  A card's datatype is a struct with fields:
+  A card's datatype is a struct with fields named:
   * `rank` (int) 0 if an investment card, 2-10 if an expedition card.
   * `suit` (int) The suit (color) of the card, from 0-4.
 
@@ -45,8 +45,10 @@ Requests a location to play a card to.
 
 * `hand` (array) Array of cards in hand.
 * `discards` (array of array) Array of discard piles.
-* `expos0` (array of array) Expeditions for player 0.
-* `expos1` (array of array) Expeditions for player 1.
+* `expos` (array of array of array) A 2-length array (expeditions for player 0,
+  and then player 1); each of which contains a 5-length array (for each suit),
+  each of which contains an array of cards on that expedition. 
+* `deck_size` (int) Number of cards left in the deck.
 
 **Response:** A struct containing fields named:
 
