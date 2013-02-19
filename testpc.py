@@ -40,24 +40,28 @@ class GTPC(xmlrpc.XMLRPC):
         if self.player_num == 1:
             our_expos, their_expos = their_expos, our_expos
 
-        max_our_length = max(map(len,our_expos))
+        print ""
+        max_our_length = max(2,max(map(len,our_expos)))
+        for j in range(max_our_length-1):
+            sys.stdout.write('    ')
+        print ' you | discards | opponent'
         for i in range(nsuits):
             for j in range(max_our_length - len(our_expos[i])):
                 sys.stdout.write('    ')
             for c in our_expos[i]:
                 format_card(c)
-            #sys.stdout.write(' [')
+            sys.stdout.write(' |    ')
             if (len(discards[i]) == 0):
                 format_card({'suit': i, 'rank': 1})
             else:
                 format_card(discards[i][0])
-            #sys.stdout.write('] ')
+            sys.stdout.write('  | ')
             tmp = their_expos[i][:]
             tmp.reverse()
             for c in tmp:
                 format_card(c)
             sys.stdout.write("\n")
-        sys.stdout.write("hand: ")
+        sys.stdout.write("\nhand: ")
         for c in range(len(hand)):
             format_card(hand[c])
         sys.stdout.write("\n       0   1   2   3   4   5   6   7\n")
