@@ -14,9 +14,16 @@
 (defmacro princ-executing (&body expr)
   `(progn (princ (quote ,@expr)) ,@expr))
 
-(defun card-to-struct (c) (if (null c) 0 (xml-rpc-struct :|rank| (cdr c) :|suit| (car c))))
+(defun card-to-struct (c) (xml-rpc-struct :|rank| (cdr c) :|suit| (car c)))
 (defun cardlist-to-xml (cs) (map 'vector #'card-to-struct cs))
 (defun cardlistvector-to-xml (csv) (map 'vector #'cardlist-to-xml csv))
+
+; this is extremely ugly
+(defun cardlistmatrix-to-xml (csm)
+  (map 'vector #'identity
+       (loop for i below 2 collect
+	    (map 'vector #'cardlist-to-xml
+		 (loop for j below gt-game::+suits+ collect (aref csm i j))))))
 
 (defun game-runner (player-uris)
   ; player uris should be of the form
@@ -41,20 +48,25 @@
          (let* ((r0 (player-call
 		     turn "getPlay"
 		     (cardlist-to-xml (elt (hands g) turn))
-				 (cardlistvector-to-xml (discards g))
-                                 (cardlistvector-to-xml (elt (trails g) turn))
-                                 (cardlistvector-to-xml
-				  (elt (trails g) (- 1 turn)))))
+		     (cardlistvector-to-xml (discards g))
+		     (cardlistmatrix-to-xml (expos g))
+		     (length (deck g))))
+		;(dummy (describe r0))
                 (card-ix (get-xml-rpc-struct-member r0 :|card_ix|))
                 (play-to (get-xml-rpc-struct-member r0 :|play_to|))
                 (draw-from (get-xml-rpc-struct-member r0 :|draw_from|))
                 (card-played (elt (elt (hands g) turn) card-ix)))
+	   (princ (list card-ix play-to draw-from))
 	   (describe g)
-	   (princ (place-card g turn card-ix
-		       (if (= play-to 0) :discard-pile :expedition)))
-           (princ (player-draw-card g turn
-			     (if (< draw-from 0) :deck :discard-pile)
-			     :pile-ix draw-from))
+	   (if (equalp :discarded-instead
+		       (place-card g turn card-ix
+				   (if (= play-to 0) :discard :expo)))
+	       (setf play-to 0))
+           (if (equalp :drew-from-deck
+		       (player-draw-card g turn
+					 (if (< draw-from 0) :deck :discard)
+					 :pile-ix draw-from))
+	       (setf draw-from -1))
            (if (null (deck g)) (return-from outer nil))
            ;(player-call turn "drawnCard" (mapcar #'card-to-struct (elt (hands g) turn)))
            (player-call (- 1 turn) "opponentPlay" (card-to-struct card-played)
