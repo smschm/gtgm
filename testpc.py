@@ -7,7 +7,7 @@ nsuits = 5
 def format_card(card):
     #print card
     #try:
-    card_symbols = ['<i>','ERR',' 2 ',' 3 ',' 4 ',' 5 ',' 6 ',' 7 ',' 8 ',' 9 ',' 10']
+    card_symbols = ['<i>','---',' 2 ',' 3 ',' 4 ',' 5 ',' 6 ',' 7 ',' 8 ',' 9 ',' 10']
     suit_codes = ['1;43','1;44','7','1;42','1;41']
     sys.stdout.write("\033[%sm%s\033[0m " % (suit_codes[card['suit']], card_symbols[card['rank']]))
     #except Exception:
@@ -48,7 +48,7 @@ class GTPC(xmlrpc.XMLRPC):
                 format_card(c)
             #sys.stdout.write(' [')
             if (len(discards[i]) == 0):
-                sys.stdout.write('--- ')
+                format_card({'suit': i, 'rank': 1})
             else:
                 format_card(discards[i][0])
             #sys.stdout.write('] ')

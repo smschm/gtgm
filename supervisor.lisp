@@ -56,6 +56,9 @@
                 (play-to (get-xml-rpc-struct-member r0 :|play_to|))
                 (draw-from (get-xml-rpc-struct-member r0 :|draw_from|))
                 (card-played (elt (elt (hands g) turn) card-ix)))
+	   (if (and (= play-to 0) (= (car card-played) draw-from))
+	       ; trying to draw the discarded card
+	       (setf draw-from -1))
 	   (princ (list card-ix play-to draw-from))
 	   (describe g)
 	   (if (equalp :discarded-instead
