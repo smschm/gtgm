@@ -22,6 +22,7 @@
 	      (loop for rank in +ranks+
 		 collect (cons suit rank)))))
 
+#|
 (defun score-pile-v (pile)
   (let ((penalty 0) (multiplier 1) (total 0))
     (loop for c across pile do
@@ -37,6 +38,17 @@
 		  :total (if (> (cdar pile) 1) (+ total (cdar pile)) total)
 		  :multiplier (if (= (cdar pile) 0)
 				  (+ multiplier 1) multiplier))))
+|#
+
+(defun score-pile (pile)
+  (let ((penalty 0) (multiplier 1) (total 0))
+    (loop for c in pile do
+         (progn (setf penalty -20)
+                (if (= (cdr c) 0) (incf multiplier)
+                    (incf total (cdr c)))))
+    (+ (* multiplier (+ penalty total))
+       (if (>= (length pile) 8) 20 0))))
+                
 
 ;(defclass game-state ()
 ;  ((started :initform nil :accessor started)
