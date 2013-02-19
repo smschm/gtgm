@@ -53,30 +53,32 @@
 		     (length (deck g))))
 		;(dummy (describe r0))
                 (card-ix (get-xml-rpc-struct-member r0 :|card_ix|))
-                (play-to (get-xml-rpc-struct-member r0 :|play_to|))
+                (play-to-raw (get-xml-rpc-struct-member r0 :|play_to|))
+                (play-to (if (= play-to-raw 0) :discard :expo))
                 (draw-from (get-xml-rpc-struct-member r0 :|draw_from|))
                 (card-played (elt (elt (hands g) turn) card-ix)))
-	   (if (and (= play-to 0) (= (car card-played) draw-from))
-	       ; trying to draw the discarded card
-	       (setf draw-from -1))
-	   (princ (list card-ix play-to draw-from))
-	   (describe g)
-	   (if (equalp :discarded-instead
-		       (place-card g turn card-ix
-				   (if (= play-to 0) :discard :expo)))
-	       (setf play-to 0))
+
+           ;(princ (list card-ix play-to draw-from))
+           ;(describe g)
+           (if (equalp :discarded-instead
+                       (place-card g turn card-ix play-to))
+               (setf play-to :discard))
+           (if (and (equal play-to :discard)
+                    (= (car card-played) draw-from))
+               ; trying to draw the discarded card
+               (progn (format t "trying to draw discarded!") (setf draw-from -1)))
            (if (equalp :drew-from-deck
-		       (player-draw-card g turn
-					 (if (< draw-from 0) :deck :discard)
-					 :pile-ix draw-from))
-	       (setf draw-from -1))
+                       (player-draw-card g turn
+                                         (if (< draw-from 0) :deck :discard)
+                                         :pile-ix draw-from))
+               (setf draw-from -1))
            (if (null (deck g)) (return-from outer nil))
-           ;(player-call turn "drawnCard" (mapcar #'card-to-struct (elt (hands g) turn)))
            (player-call (- 1 turn) "opponentPlay" (card-to-struct card-played)
-                        play-to draw-from)
+                        play-to-raw draw-from)
            (setf turn (- 1 turn)))))
     (let ((scores (score-game g)))
       (player-call 0 "gameEnd" (car scores) (cadr scores))
-      (player-call 1 "gameEnd" (car scores) (cadr scores)))))
+      (player-call 1 "gameEnd" (car scores) (cadr scores))
+      (if (> (car scores) (cadr scores)) 0 1))))
                                
                              

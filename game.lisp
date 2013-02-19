@@ -135,7 +135,7 @@
 	     (setf status t))))
       ((:deck)
        (let ((card (pop (deck g))))
-	 (format t "pushing card ~A onto ~A~%" card (elt (hands g) player))
+	 ;(format t "pushing card ~A onto ~A~%" card (elt (hands g) player))
 	 ;(push (elt (hands g) player) card)
 	 (setf (elt (hands g) player)
 	       (cons card (elt (hands g) player)))
