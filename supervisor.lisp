@@ -1,6 +1,8 @@
 (defpackage :gt-super
-  (:use :common-lisp :gt-game :s-xml-rpc :bordeaux-threads))
+  (:use :common-lisp :gt-game :s-xml-rpc :bordeaux-threads :clsql))
 (in-package :gt-super)
+
+(clsql:file-enable-sql-reader-syntax)
 
 (defparameter +timeout+ 5)
 
@@ -62,17 +64,9 @@
 (defun game-runner (player-uris)
   ; player uris should be of the form
   ; ((player0-uri . player0-port) (player1-uri . player1-port))
-
-  ; confirm both players are ready
-  ;(if (not (xml-rpc-call (encode-xml-rpc-call "startGame")
-  ;                       :host player0-uri :port player0-port))
-  ;    (return-from game-runner nil))
-  ;(if (not (xml-rpc-call (encode-xml-rpc-call "startGame")
-  ;                       :host player1-uri :port player1-port))
-  ;    (return-from game-runner nil))
   (if (not (and (player-call/handle player-uris 0 "startGame")
                 (player-call/handle player-uris 1 "startGame")))
-      (return-from game-runner nil))
+      (return-from game-runner :game-declined))
   (let ((g (make-instance 'game-state)) (turn 0))
     (start-game g)
     (player-call/handle player-uris
@@ -124,3 +118,23 @@
       (player-call/ignore player-uris 0 "gameEnd" (car scores) (cadr scores))
       (player-call/ignore player-uris 1 "gameEnd" (car scores) (cadr scores))
       (if (> (car scores) (cadr scores)) 0 1))))
+
+(defun lookup-host (bot-sql-format)
+  (if (not (null (third bot-sql-format))) (cons (third bot-sql-format)
+                                                (fourth bot-sql-format))
+      (cons (caar (clsql:select [host] :from [users]
+                                :where [= (second bot-sql-format) [name]]))
+            (fourth bot-sql-format))))
+
+(defun play-random ()
+  (let* ((active-bots (clsql:select [*] :from [bots]
+                                    :where [< 0 [active]]))
+         (num-bots (length active-bots))
+         (bot0-ix (progn
+                    (if (< num-bots 2) (return-from play-random :too-few))
+                    (random num-bots)))
+         (bot1-ix (let ((r (random (- num-bots 1))))
+                    (+ r (if (>= r bot0-ix) 1 0))))
+         (bot0 (elt active-bots bot0-ix))
+         (bot1 (elt active-bots bot1-ix)))
+    nil)) ; stub

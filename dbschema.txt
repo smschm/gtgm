@@ -1,0 +1,29 @@
+users:
+* name (string, key)
+* pwhash (string)
+* session (string cookie)
+* host (string)
+create table users (name text primary key, pwhash text, session text, host text);
+
+bots:
+* id (int key)
+* owner (string not null)
+* host (string, if different from host for user)
+* port (int)
+* name (string not null unique)
+* rating (double)
+* active (int)
+create table bots (id integer primary key, owner text not null, host
+text, port integer, name text unique not null, rating numeric, active integer);
+
+games:
+* id (int key)
+* bot 0 (int not null)
+* bot 1 (int not null)
+* result (int)
+* score 0 (int)
+* score 1 (int)
+* timestamp (int)
+create table games (id integer primary key, bot0 integer not null,
+bot1 integer not null, result blob, score0 integer, score1 integer,
+timestamp integer);
