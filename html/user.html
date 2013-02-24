@@ -1,0 +1,17 @@
+<html>
+  <head>
+<title>GT User Management</title>
+</head>
+<body>
+You are logged in as <b><!-- TMPL_VAR uname --></b>.
+
+<form method="POST" action="/douser">
+  <table>
+  <tr><td>Current password:</td><td><input type="password" name="curpw"></td></tr>
+  <tr><td>New password (blank for no change):</td><td><input type="password" name="newpw"></td></tr>
+  <tr><td>New password (confirm):</td><td><input type="password" name="newpw2"></td></tr>
+  <tr><td>Default hostname:</td><td><input type="text" name="host" value="<!-- TMPL_VAR uhost -->"></td></tr>
+  <tr><td><input type="submit"></td></tr>
+</form>
+</body>
+</html>

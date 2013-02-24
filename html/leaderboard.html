@@ -1,0 +1,22 @@
+<html>
+  <head>
+<title>Leaderboard</title>
+</head>
+<body>
+<table border=0 cellpadding=4>
+<tr><td></td>
+    <td><b>Rating</b></td>
+    <td><b>NPC Name</b></td>
+    <td><b>Owner</b></td>
+    <td><b>Description</b></td></tr>
+<!-- TMPL_LOOP rows -->
+<tr><td><!-- TMPL_VAR rank --></td>
+    <td><!-- TMPL_VAR rating --></td>
+    <td><!-- TMPL_VAR npcname --></td>
+    <td><!-- TMPL_VAR owner --></td>
+    <td><!-- TMPL_VAR npcdesc --></td>
+</tr>
+<!-- /TMPL_LOOP -->
+</table>
+</body>
+</html>

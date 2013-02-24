@@ -1,0 +1,16 @@
+<html>
+  <head>
+<title>NPC Editing</title>
+</head>
+<body>
+Editing <b><!-- TMPL_VAR npcname --></b>:
+
+<form method="POST" action="/donpcedit">
+  <table>
+  <tr><td>Description:</td><td><input type="text" name="newdesc" value="<!-- TMPL_VAR curdesc -->"></td></tr>
+  <tr><td>Host:</td><td><input type="text" name="newhost" value="<!-- TMPL_VAR curhost -->"></td></tr>
+  <tr><td>Port:</td><td><input type="text" name="newport" value="<!-- TMPL_VAR curport -->"></td></tr>
+  <tr><td><input type="submit"><input type="hidden" name="id" value="<!-- TMPL_VAR id -->"></td></tr>
+</form>
+</body>
+</html>

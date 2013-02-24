@@ -1,0 +1,28 @@
+<html>
+  <head>
+<title>NPC Management</title>
+</head>
+<body>
+You are logged in as <b><!-- TMPL_VAR uname --></b>.<p>
+Your bots:
+<table border=0 cellpadding=4>
+<tr><td></td>
+    <td><b>Name</b></td>
+    <td><b>Description</b></td>
+    <td><b>Host</b></td>
+    <td><b>Port</b></td>
+    <td><b>A</b></td></tr>
+<!-- TMPL_LOOP rows -->
+<tr><td><a href="/npcedit?id=<!-- TMPL_VAR npcid -->">edit</a>
+    <a href="/npctoggle?id=<!-- TMPL_VAR npcid -->">toggle</a></td>
+    <td><!-- TMPL_VAR npcname --></td>
+    <td><!-- TMPL_VAR npcdesc --></td>
+    <td><!-- TMPL_VAR npchost --></td>
+    <td><!-- TMPL_VAR npcport --></td>
+    <td><!-- TMPL_IF npcactive -->X<!-- TMPL_ELSE --><!-- /TMPL_IF --></td>
+</tr>
+<!-- /TMPL_LOOP -->
+</table>
+<a href="/addnpc">add new</a>
+</body>
+</html>

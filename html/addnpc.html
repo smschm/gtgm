@@ -1,0 +1,17 @@
+<html>
+  <head>
+<title>Add an NPC</title>
+</head>
+<body>
+<form method="POST" action="/doaddnpc">
+  <table>
+    <tr><td>Name:</td><td><input type="text" name="npcname"></td></tr>
+    <tr><td>Description:</td><td><input type="text" name="npcdesc"> (optional)</td></tr>
+    <tr><td>Hostname:</td><td><input type="text" name="npchost"> (only if different from your default host)</td></tr>
+    <tr><td>Port:</td><td><input type="text" name="npcport"></td></tr>
+    <tr><td>Activate?</td><td><input type="checkbox" name="npcactive" checked="true"></td></tr>
+    <tr><td><input type="submit"></td></tr>
+  </table>
+</form>
+</body>
+</html>

@@ -1,0 +1,13 @@
+<html>
+  <head>
+<title>Add an NPC</title>
+</head>
+<body>
+<!-- TMPL_IF success -->
+NPC created successfully.
+<!-- TMPL_ELSE -->
+NPC not created for reason: <!-- TMPL_VAR reason -->
+<!-- /TMPL_IF -->
+<a href="/npc">back to NPC list</a>
+</body>
+</html>
