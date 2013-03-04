@@ -5,8 +5,8 @@
 (in-package :gt-game)
 
 (defparameter +ranks+ (append '(0 0 0) (loop for i from 2 below 11 collect i)))
-(defparameter +suits+ 5)
-(defparameter +init-hand-size+ 8)
+(defconstant +suits+ 5)
+(defconstant +init-hand-size+ 8)
 
 (defun make-adj-vector-from (list)
   (make-array (length list) :initial-contents list :adjustable t))

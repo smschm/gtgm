@@ -1,10 +1,10 @@
 (defpackage :gt-super
-  (:use :common-lisp :gt-game :s-xml-rpc :bordeaux-threads :clsql))
+  (:use :common-lisp :gt-game :s-xml-rpc :bordeaux-threads :sqlite))
 (in-package :gt-super)
 
-(clsql:file-enable-sql-reader-syntax)
+;(clsql:file-enable-sql-reader-syntax)
 
-(defparameter +timeout+ 5)
+(defconstant +timeout+ 5)
 
 (define-condition player-error (error)
   ((offender :initarg :offender)
@@ -20,7 +20,7 @@
 (defun player-call/ignore (&rest parms)
   (handler-case (trivial-timeout:with-timeout (+timeout+)
                   (apply #'player-call parms))
-    (trivial-timeout:timeout-error (c)
+    (error (c)
       (declare (ignore c))
       nil)))
 
@@ -64,8 +64,8 @@
 (defun game-runner (player-uris)
   ; player uris should be of the form
   ; ((player0-uri . player0-port) (player1-uri . player1-port))
-  (if (not (and (player-call/handle player-uris 0 "startGame")
-                (player-call/handle player-uris 1 "startGame")))
+  (if (not (and (player-call/ignore player-uris 0 "startGame")
+                (player-call/ignore player-uris 1 "startGame")))
       (return-from game-runner :game-declined))
   (let ((g (make-instance 'game-state)) (turn 0))
     (start-game g)
@@ -119,22 +119,22 @@
       (player-call/ignore player-uris 1 "gameEnd" (car scores) (cadr scores))
       (if (> (car scores) (cadr scores)) 0 1))))
 
-(defun lookup-host (bot-sql-format)
-  (if (not (null (third bot-sql-format))) (cons (third bot-sql-format)
-                                                (fourth bot-sql-format))
-      (cons (caar (clsql:select [host] :from [users]
-                                :where [= (second bot-sql-format) [name]]))
-            (fourth bot-sql-format))))
+;; (defun lookup-host (bot-sql-format)
+;;   (if (not (null (third bot-sql-format))) (cons (third bot-sql-format)
+;;                                                 (fourth bot-sql-format))
+;;       (cons (caar (clsql:select [host] :from [users]
+;;                                 :where [= (second bot-sql-format) [name]]))
+;;             (fourth bot-sql-format))))
 
-(defun play-random ()
-  (let* ((active-bots (clsql:select [*] :from [bots]
-                                    :where [< 0 [active]]))
-         (num-bots (length active-bots))
-         (bot0-ix (progn
-                    (if (< num-bots 2) (return-from play-random :too-few))
-                    (random num-bots)))
-         (bot1-ix (let ((r (random (- num-bots 1))))
-                    (+ r (if (>= r bot0-ix) 1 0))))
-         (bot0 (elt active-bots bot0-ix))
-         (bot1 (elt active-bots bot1-ix)))
-    nil)) ; stub
+;; (defun play-random ()
+;;   (let* ((active-bots (clsql:select [*] :from [bots]
+;;                                     :where [< 0 [active]]))
+;;          (num-bots (length active-bots))
+;;          (bot0-ix (progn
+;;                     (if (< num-bots 2) (return-from play-random :too-few))
+;;                     (random num-bots)))
+;;          (bot1-ix (let ((r (random (- num-bots 1))))
+;;                     (+ r (if (>= r bot0-ix) 1 0))))
+;;          (bot0 (elt active-bots bot0-ix))
+;;          (bot1 (elt active-bots bot1-ix)))
+;;     nil)) ; stub
