@@ -3,6 +3,7 @@
 <title>NPC Editing</title>
 </head>
 <body>
+<!-- TMPL_IF valid -->
 Editing <b><!-- TMPL_VAR npcname --></b>:
 
 <form method="POST" action="/donpcedit">
@@ -12,5 +13,8 @@ Editing <b><!-- TMPL_VAR npcname --></b>:
   <tr><td>Port:</td><td><input type="text" name="newport" value="<!-- TMPL_VAR curport -->"></td></tr>
   <tr><td><input type="submit"><input type="hidden" name="id" value="<!-- TMPL_VAR id -->"></td></tr>
 </form>
+<!-- TMPL_ELSE -->
+This bot doesn't belong to you. What funny business is this?
+<!-- /TMPL_IF -->
 </body>
 </html>
