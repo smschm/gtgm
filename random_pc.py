@@ -3,8 +3,11 @@ import sys
 import random
 
 class GTPC(xmlrpc.XMLRPC):
-    def xmlrpc_startGame(self):
-        return True # assume we want to start
+    def xmlrpc_ping(self):
+        return True
+
+    #def xmlrpc_startGame(self):
+    #    return True # assume we want to start
 
     def xmlrpc_initialize(self, game_id, opponent_id, player_num, hand):
         # collecting data into our struct (which we won't actually use):

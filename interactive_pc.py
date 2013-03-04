@@ -14,6 +14,10 @@ def format_card(card):
     #    sys.stdout.write('*')
 
 class GTPC(xmlrpc.XMLRPC):
+
+    def xmlrpc_ping(self):
+        return True
+
     def xmlrpc_startGame(self):
         return True # assume we want to start
 
