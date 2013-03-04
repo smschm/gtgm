@@ -1,0 +1,28 @@
+<!-- TMPL_IF loggedin -->
+<html>
+  <head>
+<title>Menu</title>
+</head>
+<body>
+Hello <b><!-- TMPL_VAR uname --></b>.
+<ul>
+  <li><a href="/leaderboard">Look at the current leaderboard</a>
+  <li><a href="/user">Change user attributes (password, host, etc.)</a>
+  <li><a href="/npc">Manage NPCs</a>
+  <li><a href="/logout">Log out</a>
+</ul>
+</body>
+</html>
+<!-- TMPL_ELSE -->
+<html>
+  <head>
+<title>Menu</title>
+</head>
+<body>
+<ul>
+  <li><a href="/login">Log in</a>
+  <li><a href="/leaderboard">Leaderboard</a>
+</ul>
+</body>
+</html>
+<!-- /TMPL_IF -->

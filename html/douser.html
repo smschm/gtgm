@@ -1,13 +1,14 @@
 <html>
   <head>
-<title>GT User Management</title>
+<title>NPC Editing</title>
 </head>
 <body>
-<!-- TMPL_IF success -->
-Success.
+<!-- TMPL_IF valid -->
+Your info was updated.<!-- TMPL_IF pwupdated --> Your password was,
+too.<!-- /TMPL_IF -->
 <!-- TMPL_ELSE -->
-Error: <!-- TMPL_VAR message -->
+Your info was not updated for some reason.
 <!-- /TMPL_IF -->
-<a href="/">back to index</a>
+<a href="/">back to main</a>
 </body>
 </html>

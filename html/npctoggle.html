@@ -1,0 +1,14 @@
+<html>
+  <head>
+<title>NPC Toggle</title>
+</head>
+<body>
+<!-- TMPL_IF valid -->
+NPC <!-- TMPL_IF newactive -->turned on.<!-- TMPL_ELSE -->turned
+off.<!-- /TMPL_IF -->
+<!-- TMPL_ELSE -->
+NPC not toggled for some reason.
+<!-- /TMPL_IF -->
+<a href="/npc">back to NPC list</a>
+</body>
+</html>
