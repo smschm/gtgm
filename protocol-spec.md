@@ -11,6 +11,18 @@ To curb the natural tendency to call the central entity a "server" and the bots
 
 The XML-RPC functions that the GM will call and the PCs expected response are:
 
+### `ping`
+
+A ping. Returning True indicates your PC is active; any other response or any
+error will cause the PC to not be considered for gameplay selection.
+This is separate from `startGame` since `startGame` indicates the potential
+beginning of a gameplay, whereas `ping` may be called many times without an
+impending game.
+
+**Parameters:** None
+
+**Response:** True
+
 ### `startGame`
 
 Signals the PC that the GM would like to begin a game.
