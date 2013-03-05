@@ -186,10 +186,11 @@
     (with-output-to-string (s)
       (html-template:fill-and-print-template
        #p"html/leaderboard.html" `(:rows ,(loop for npc in results for rank from 1 collect
-                                               `(:rank ,rank :rating ,(seventh npc)
+                                               `(:rank ,rank :rating ,(floor (seventh npc))
                                                  :npcname ,(fifth npc)
                                                  :owner ,(second npc)
-                                                 :npcdesc ,(sixth npc))))
+                                                 :npcdesc ,(sixth npc)
+						 :ping ,(if (= (ninth npc) 1) "*" ""))))
        :stream s))))
 
 (defun add-leaderboard-to-handlers ()
@@ -282,3 +283,14 @@
          (make-instance 'hunchentoot:easy-acceptor :port 4242)))
   (setf (hunchentoot:acceptor-error-template-directory *acceptor*) nil
         (hunchentoot:acceptor-document-root *acceptor*) nil))
+
+(defun add-all-handlers ()
+  (add-login-to-handlers)
+  (add-logout-to-handlers)
+  (add-npc-to-handlers)
+  (add-npcedit-to-handlers)
+  (add-npctoggle-to-handlers)
+  (add-user-to-handlers)
+  (add-root-to-handlers)
+  (add-addnpc-to-handlers)
+  (add-leaderboard-to-handlers))

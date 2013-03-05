@@ -1,5 +1,5 @@
 (defpackage :gt-super
-  (:use :common-lisp :gt-game :s-xml-rpc :bordeaux-threads :sqlite))
+  (:use :common-lisp :gt-game :s-xml-rpc :bordeaux-threads :sqlite :gt-web))
 (in-package :gt-super)
 
 ;(clsql:file-enable-sql-reader-syntax)
@@ -7,7 +7,7 @@
 (defconstant +timeout+ 5)
 
 (define-condition player-error (error)
-  ((offender :initarg :offender)
+  ((offender :initarg :offender :accessor offender)
    (description :initarg :description :accessor description))
   (:report (lambda (condition stream)
              (format stream "~A" (description condition)))))
@@ -110,15 +110,106 @@
                                          (if (< draw-from 0) :deck :discard)
                                          :pile-ix draw-from))
                (setf draw-from -1))
-           (player-call/handle player-uris (- 1 turn) "opponentPlay" (card-to-struct card-played)
-                        play-to-raw draw-from)
+           ;(player-call/handle player-uris (- 1 turn) "opponentPlay" (card-to-struct card-played)
+           ;             play-to-raw draw-from)
            (if (null (deck g)) (return-from outer nil))
            (setf turn (- 1 turn)))))
     (let ((scores (score-game g)))
       (player-call/ignore player-uris 0 "gameEnd" (car scores) (cadr scores))
       (player-call/ignore player-uris 1 "gameEnd" (car scores) (cadr scores))
-      (if (> (car scores) (cadr scores)) 0 1))))
+      scores)))
 
+(defun nil-or-empty (x)
+  (or (null x) (equal x "")))
+
+(defun get-address-by-id (id)
+  (let* ((owner (sqlite:execute-single gt-web::*db* "select owner from npcs where id = ?;" id))
+	 (owner-host (sqlite:execute-single gt-web::*db* "select host from users where name = ?;" owner))
+	 (npc-port (sqlite:execute-single gt-web::*db* "select port from npcs where id = ?;" id))
+	 (npc-host (sqlite:execute-single gt-web::*db* "select host from npcs where id = ?;" id))
+	 (host (if (nil-or-empty npc-host) owner-host npc-host)))
+    (cons host npc-port)))
+
+(defun play-by-id (id0 id1)
+  (handler-case
+      (game-runner (list (get-address-by-id id0)
+			 (get-address-by-id id1)))
+    (player-error (e)
+      (list :error (offender e)))))
+
+(defun test-ping (id)
+  (let ((ping (player-call/ignore (list (get-address-by-id id)) 0 "ping")))
+    (sqlite:execute-non-query gt-web::*db*
+			      "update npcs set pinging = ? where id = ?;"
+			      (if ping 1 0) id)
+    ping))
+
+(defun check-pinging ()
+  (let* ((active-npcs (sqlite:execute-to-list gt-web::*db*
+			 "select id, name  from npcs where active = 1;")))
+    (loop for id in active-npcs
+	 do (progn 
+	      (format t "checking #~A [~A]~%" (first id) (second id))
+	      (test-ping (first id))))))
+
+(defun pinging-ids ()
+  (mapcar #'car (sqlite:execute-to-list gt-web::*db*
+		  "select id from npcs where pinging = 1;")))
+
+(defun update-elo (p0 p1 winner)
+  (let* ((wonp (if (= winner 0) t
+		   (if (= winner 1) nil :tie)))
+	 (rating0
+	  (sqlite:execute-single gt-web::*db*
+				 "select rating from npcs where id = ?;" p0))
+	 (rating1
+	  (sqlite:execute-single gt-web::*db*
+				 "select rating from npcs where id = ?;" p1))
+	 (new (elo:new-rating rating0 rating1 wonp)))
+    (sqlite:execute-non-query gt-web::*db*
+	"update npcs set rating = ? where id = ?;" (car new) p0)
+    (sqlite:execute-non-query gt-web::*db*
+	"update npcs set rating = ? where id = ?;" (cdr new) p1)))
+
+(defun main-runner ()
+  (let* ((active (pinging-ids))
+	 (count (length active))
+	 (p0-ix (progn
+		  (if (< count 2) (return-from main-runner :too-few))
+		  (random count)))
+	 (p1-ix (let ((r (random (- count 1))))
+		  (+ r (if (>= r p0-ix) 1 0))))
+	 (p0 (elt active p0-ix)) (p1 (elt active p1-ix))
+	 (result (progn
+		   (format t "playing ~A v ~A~%" p0 p1)
+		   (play-by-id p0 p1)))
+	 (winner nil) (result-code nil)
+	 (score0 nil) (score1 nil))
+    (cond
+      ((null result) nil)
+      ((equal result :game-declined) :game-declined)
+      ((= (length result) 2)
+       (progn (if (equal (first result) :error)
+		  (setf result-code "error"
+			winner (- 1 (second result))
+			;; maps errorer to -1, non-errorer to 0:
+			score0 (- (second result) 1) ; these are just
+			score1 (- (second result))) ; being a dick
+		  (if (= (first result) (second result))
+		      (setf result-code "tie"
+			    winner -1
+			    score0 (first result)
+			    score1 (second result))
+		      (setf result-code "win"
+			    winner (if (> (first result) (second result)) 0 1)
+			    score0 (first result)
+			    score1 (second result))))
+	      (sqlite:execute-non-query gt-web::*db*
+		 "insert into games (id0, id1, result, score0, score1) values (?,?,?,?,?);"
+		 p0 p1 result-code score0 score1)
+	      (update-elo p0 p1 winner)))
+      (t :guru-meditation))))
+;    result))
 ;; (defun lookup-host (bot-sql-format)
 ;;   (if (not (null (third bot-sql-format))) (cons (third bot-sql-format)
 ;;                                                 (fourth bot-sql-format))
