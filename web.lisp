@@ -5,16 +5,11 @@
 ;  (ql:quickload :ironclad))
 
 (defpackage :gt-web
-  (:use :common-lisp));  :hunchentoot :sqlite))
+  (:use :common-lisp :gt-db)
+  (:import-from :gt-db :*db* :defun/lock))
 (in-package :gt-web)
 
-(defvar *path* (concatenate 'string (sb-posix:getenv "HOME") "/test.sql"))
-(defvar *db* (sqlite:connect *path*))
 (defvar *acceptor*)
-
-(eval-when (:compile-toplevel) (format t "compile-toplevel"))
-(eval-when (:load-toplevel) (format t "load-toplevel"))
-(eval-when (:execute) (format t "execute"))
 
 (defmacro sql-execute-single-or-nil (&body params)
   `(handler-case (sqlite:execute-single *db* ,@params)
@@ -41,7 +36,7 @@
 	   (loop for i below len collect
 		(elt hexes (random (length hexes)))))))
 
-(defun /dologin (uname upw)
+(defun/lock /dologin (uname upw)
   (let ((successp (login-success-p uname upw))
 	(session-key (make-session-key)))
     (if successp (progn
@@ -65,7 +60,7 @@
 
 ;;; npc management
 
-(defun session-verify ()
+(defun/lock session-verify ()
   (let* ((uname (hunchentoot:cookie-in "uname"))
 	 (session-key (hunchentoot:cookie-in "session"))
 	 (session-stored (sql-execute-single-or-nil 
@@ -89,7 +84,7 @@
 	 (sqlite:execute-to-list *db* query))
        ()))
 
-(defun /npc (uname)
+(defun/lock /npc (uname)
   (with-output-to-string (s)
     (html-template:fill-and-print-template
      #p"html/npc.html"
@@ -103,7 +98,7 @@
     (let ((uname (session-verify)))
       (if uname (/npc uname)))))
 
-(defun /doaddnpc (uname npcname npcdesc npchost npcport npcactive)
+(defun/lock /doaddnpc (uname npcname npcdesc npchost npcport npcactive)
   (let ((success nil) (err-message nil))
     (handler-case
 	(progn (format t "npcactive: ~A~%" npcactive)
@@ -138,7 +133,7 @@
     
 ;;;;
 
-(defun /npcedit (uname id)
+(defun/lock /npcedit (uname id)
   (let* ((id-owner (sqlite:execute-single *db* "select owner from npcs where id = ?;" id))
 	 (npc-data-l (sqlite:execute-to-list *db* "select * from npcs where id = ?;" id))
 	 (valid (and uname id id-owner (equal id-owner uname))))
@@ -157,7 +152,7 @@
 	   #p"html/npcedit.html" (list :valid nil :uname uname :id id)
 	  :stream s)))))
 
-(defun /donpcedit (uname id newdesc newhost newport)
+(defun/lock /donpcedit (uname id newdesc newhost newport)
   (let* ((id-owner (sqlite:execute-single *db* "select owner from npcs where id = ?;" id))
          (active-p (sqlite:execute-single *db* "select active from npcs where id = ?;" id))
          (valid (and uname id id-owner active-p (equal id-owner uname))))
@@ -181,7 +176,7 @@
       (if uname (/donpcedit uname id newdesc newhost newport)))))
 ;;;;
 
-(defun /leaderboard ()
+(defun/lock /leaderboard ()
   (let ((results (sqlite:execute-to-list *db* "select * from npcs where active = 1 order by rating desc;")))
     (with-output-to-string (s)
       (html-template:fill-and-print-template
@@ -190,7 +185,7 @@
                                                  :npcname ,(fifth npc)
                                                  :owner ,(second npc)
                                                  :npcdesc ,(sixth npc)
-						 :ping ,(if (= (ninth npc) 1) "*" ""))))
+						 :ping ,(if (equal (ninth npc) 1) "*" ""))))
        :stream s))))
 
 (defun add-leaderboard-to-handlers ()
@@ -200,7 +195,7 @@
 
 ;;;;
 
-(defun /user (uname)
+(defun/lock /user (uname)
   (let ((host (if uname
                   (sqlite:execute-single *db* "select host from users where name = ?;" uname)
                   nil)))
@@ -210,7 +205,7 @@
 
 
 
-(defun /douser (uname curpw newpw newpw2 host)
+(defun/lock /douser (uname curpw newpw newpw2 host)
   (let ((valid (and uname (equal (hash-password curpw)
                                  (sql-execute-single-or-nil
                                    "select pwhash from users where name = ?;" uname))))
@@ -239,7 +234,7 @@
 
 ;;;;
 
-(defun /npctoggle (uname id)
+(defun/lock /npctoggle (uname id)
   (let* ((id-owner (sqlite:execute-single *db* "select owner from npcs where id = ?;" id))
          (active-p (sqlite:execute-single *db* "select active from npcs where id = ?;" id))
          (valid (and uname id id-owner active-p (equal id-owner uname)))
@@ -277,12 +272,35 @@
 
 ;;;;
 
+(defun/lock win-percentage (id0 id1)
+  (let* ((wins (sqlite:execute-single *db* "select count(*) from games where (id0 = ? and id1 = ? and score1 < score0) or (id0 = ? and id1 = ? and score1 > score0);" id0 id1 id1 id0))
+         (losses (sqlite:execute-single *db* "select count(*) from games where (id0 = ? and id1 = ? and score1 < score0) or (id0 = ? and id1 = ? and score1 > score0);" id1 id0 id0 id1))
+         (total (+ wins losses)))
+    (if (= total 0) nil
+        (round (* 1000 (/ wins (+ wins losses)))))))
+
+(defun/lock /winmatrix ()
+  (let* ((active (sqlite:execute-to-list *db* "select id, name from npcs where active = 1;")))
+    `(:headings ,(loop for npc in active collect `(:id ,(first npc)))
+      :rows ,(loop for npc in active collect
+                  `(:name ,(second npc) :id ,(first npc) :columns
+                          ,(loop for npc2 in active collect
+                                `(:count ,(win-percentage (first npc) (first npc2)))))))))
+
+(defun add-winmatrix-to-handlers ()
+  (hunchentoot:define-easy-handler (winmatrix :uri "/winmatrix") ()
+    (setf (hunchentoot:content-type*) "text/html")
+    (with-output-to-string (s)
+      (html-template:fill-and-print-template
+         #p"html/winmatrix.html" (/winmatrix)
+         :stream s))))
+
 (defun h-start ()
   (setf *acceptor*
         (hunchentoot:start
          (make-instance 'hunchentoot:easy-acceptor :port 4242)))
   (setf (hunchentoot:acceptor-error-template-directory *acceptor*) nil
-        (hunchentoot:acceptor-document-root *acceptor*) nil))
+        (hunchentoot:acceptor-document-root *acceptor*) #p"html/static/"))
 
 (defun add-all-handlers ()
   (add-login-to-handlers)

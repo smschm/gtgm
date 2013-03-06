@@ -1,10 +1,13 @@
 (defpackage :gt-super
-  (:use :common-lisp :gt-game :s-xml-rpc :bordeaux-threads :sqlite :gt-web))
+  (:use :common-lisp :gt-game :s-xml-rpc :bordeaux-threads :sqlite)
+  (:import-from :gt-db :*db* :defun/lock))
 (in-package :gt-super)
 
 ;(clsql:file-enable-sql-reader-syntax)
 
 (defconstant +timeout+ 5)
+(defvar *continue*)
+;(defvar *db-lock* (bordeaux-threads:make-lock :name "db lock"))
 
 (define-condition player-error (error)
   ((offender :initarg :offender :accessor offender)
@@ -110,8 +113,8 @@
                                          (if (< draw-from 0) :deck :discard)
                                          :pile-ix draw-from))
                (setf draw-from -1))
-           ;(player-call/handle player-uris (- 1 turn) "opponentPlay" (card-to-struct card-played)
-           ;             play-to-raw draw-from)
+           (player-call/ignore player-uris (- 1 turn) "opponentPlay" (card-to-struct card-played)
+                        play-to-raw draw-from)
            (if (null (deck g)) (return-from outer nil))
            (setf turn (- 1 turn)))))
     (let ((scores (score-game g)))
@@ -122,7 +125,7 @@
 (defun nil-or-empty (x)
   (or (null x) (equal x "")))
 
-(defun get-address-by-id (id)
+(defun/lock get-address-by-id (id)
   (let* ((owner (sqlite:execute-single gt-web::*db* "select owner from npcs where id = ?;" id))
 	 (owner-host (sqlite:execute-single gt-web::*db* "select host from users where name = ?;" owner))
 	 (npc-port (sqlite:execute-single gt-web::*db* "select port from npcs where id = ?;" id))
@@ -144,7 +147,7 @@
 			      (if ping 1 0) id)
     ping))
 
-(defun check-pinging ()
+(defun/lock check-pinging ()
   (let* ((active-npcs (sqlite:execute-to-list gt-web::*db*
 			 "select id, name  from npcs where active = 1;")))
     (loop for id in active-npcs
@@ -152,11 +155,11 @@
 	      (format t "checking #~A [~A]~%" (first id) (second id))
 	      (test-ping (first id))))))
 
-(defun pinging-ids ()
+(defun/lock pinging-ids ()
   (mapcar #'car (sqlite:execute-to-list gt-web::*db*
 		  "select id from npcs where pinging = 1;")))
 
-(defun update-elo (p0 p1 winner)
+(defun/lock update-elo (p0 p1 winner)
   (let* ((wonp (if (= winner 0) t
 		   (if (= winner 1) nil :tie)))
 	 (rating0
@@ -204,28 +207,15 @@
 			    winner (if (> (first result) (second result)) 0 1)
 			    score0 (first result)
 			    score1 (second result))))
-	      (sqlite:execute-non-query gt-web::*db*
+	      (gt-db::lock/execute-non-query
 		 "insert into games (id0, id1, result, score0, score1) values (?,?,?,?,?);"
 		 p0 p1 result-code score0 score1)
 	      (update-elo p0 p1 winner)))
       (t :guru-meditation))))
-;    result))
-;; (defun lookup-host (bot-sql-format)
-;;   (if (not (null (third bot-sql-format))) (cons (third bot-sql-format)
-;;                                                 (fourth bot-sql-format))
-;;       (cons (caar (clsql:select [host] :from [users]
-;;                                 :where [= (second bot-sql-format) [name]]))
-;;             (fourth bot-sql-format))))
 
-;; (defun play-random ()
-;;   (let* ((active-bots (clsql:select [*] :from [bots]
-;;                                     :where [< 0 [active]]))
-;;          (num-bots (length active-bots))
-;;          (bot0-ix (progn
-;;                     (if (< num-bots 2) (return-from play-random :too-few))
-;;                     (random num-bots)))
-;;          (bot1-ix (let ((r (random (- num-bots 1))))
-;;                     (+ r (if (>= r bot0-ix) 1 0))))
-;;          (bot0 (elt active-bots bot0-ix))
-;;          (bot1 (elt active-bots bot1-ix)))
-;;     nil)) ; stub
+(defun main-loop () (loop for i from 0 do
+                         (progn (sleep 2)
+                                (format t "~A~%" i)
+                                (check-pinging)
+                                (main-runner))
+                         while *continue*))

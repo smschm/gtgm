@@ -1,0 +1,20 @@
+<html>
+  <head>
+<title>WINMATRIX</title>
+</head>
+<body>
+<table border=0 cellpadding=4>
+<tr><td></td><td></td>
+  <!-- TMPL_LOOP headings -->
+  <td align=right><b><!-- TMPL_VAR id --></b></td>
+  <!-- /TMPL_LOOP -->
+</tr>
+<!-- TMPL_LOOP rows -->
+<tr><td align=right><!-- TMPL_VAR name --></td>
+    <td align=right><b><!-- TMPL_VAR id --></b></td>
+    <!-- TMPL_LOOP columns --><td align=right><!-- TMPL_VAR count --></td><!-- /TMPL_LOOP -->
+</tr>
+<!-- /TMPL_LOOP -->
+</table>
+</body>
+</html>
