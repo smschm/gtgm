@@ -1,13 +1,10 @@
 (defpackage :gt-super
   (:use :common-lisp :gt-game :s-xml-rpc :bordeaux-threads :sqlite)
-  (:import-from :gt-db :*db* :defun/lock))
+  (:import-from :gt-db :*db* :*game-record* :defun/lock))
 (in-package :gt-super)
-
-;(clsql:file-enable-sql-reader-syntax)
 
 (defconstant +timeout+ 5)
 (defvar *continue*)
-;(defvar *db-lock* (bordeaux-threads:make-lock :name "db lock"))
 
 (define-condition player-error (error)
   ((offender :initarg :offender :accessor offender)
@@ -70,8 +67,9 @@
   (if (not (and (player-call/ignore player-uris 0 "startGame")
                 (player-call/ignore player-uris 1 "startGame")))
       (return-from game-runner :game-declined))
-  (let ((g (make-instance 'game-state)) (turn 0))
+  (let ((g (make-instance 'game-state)) (turn 0) (this-game-record nil))
     (start-game g)
+    (push (list 
     (player-call/handle player-uris
                  0 "initialize" 0 0 ; opponent id = game id = 0 for now
                  0 (mapcar #'card-to-struct (elt (hands g) 0)))
@@ -95,8 +93,10 @@
                      draw-from (get-xml-rpc-struct-member r0 :|draw_from|)
                      card-played (elt (elt (hands g) turn) card-ix))
              (error (e)
-               (error 'player-error :offender turn :description
-                      (with-output-to-string (s) (describe e s)))))
+	       (let ((error-description (with-output-to-string (s) (describe e s))))
+		 (push (list :error turn error-description) this-game-record)
+		 (push this-game-record *game-record*)
+		 (error 'player-error :offender turn :description error-description))))
 
            ;(princ (list card-ix play-to draw-from))
            ;(describe g)
@@ -113,11 +113,14 @@
                                          (if (< draw-from 0) :deck :discard)
                                          :pile-ix draw-from))
                (setf draw-from -1))
+	   (push (list turn card-played play-to draw-from) this-game-record)
            (player-call/ignore player-uris (- 1 turn) "opponentPlay" (card-to-struct card-played)
                         play-to-raw draw-from)
            (if (null (deck g)) (return-from outer nil))
            (setf turn (- 1 turn)))))
     (let ((scores (score-game g)))
+      (push (list :end (car scores) (cadr scores)) this-game-record)
+      (push this-game-record *game-record*)
       (player-call/ignore player-uris 0 "gameEnd" (car scores) (cadr scores))
       (player-call/ignore player-uris 1 "gameEnd" (car scores) (cadr scores))
       scores)))
