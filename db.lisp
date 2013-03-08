@@ -6,6 +6,7 @@
 (defvar *path* (concatenate 'string (sb-posix:getenv "HOME") "/gtgm.sqlite"))
 (defvar *db* (sqlite:connect *path* :busy-timeout 1000))
 (defvar *lock* (bordeaux-threads:make-recursive-lock "db lock"))
+(defvar *game-record* nil)
 
 (defmacro lock/execute (function &body body)
   `(bordeaux-threads:with-recursive-lock-held (*lock*)

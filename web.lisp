@@ -6,7 +6,7 @@
 
 (defpackage :gt-web
   (:use :common-lisp :gt-db)
-  (:import-from :gt-db :*db* :defun/lock))
+  (:import-from :gt-db :*db* :*game-record* :defun/lock))
 (in-package :gt-web)
 
 (defvar *acceptor*)

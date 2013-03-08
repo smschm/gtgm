@@ -4,7 +4,8 @@
   :serial t
   :depends-on (#:s-xml-rpc #:bordeaux-threads #:trivial-timeout
                #:hunchentoot #:sqlite #:ironclad #:html-template)
-  :components ((:file "game")
-               (:file "web")
+  :components ((:file "db")
+	       (:file "game")
                (:file "elo")
+               (:file "web")
                (:file "supervisor")))
