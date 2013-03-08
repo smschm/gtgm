@@ -157,7 +157,7 @@
 
 (defun/lock pinging-ids ()
   (mapcar #'car (sqlite:execute-to-list gt-web::*db*
-		  "select id from npcs where pinging = 1;")))
+		  "select id from npcs where pinging = 1 and active = 1;")))
 
 (defun/lock update-elo (p0 p1 winner)
   (let* ((wonp (if (= winner 0) t
