@@ -1,11 +1,12 @@
 <html>
   <head>
+<link rel="stylesheet" type="text/css" href="main.css">
 <title>NPC Management</title>
 </head>
 <body>
+<h1>NPC Management</h1>
 You are logged in as <b><!-- TMPL_VAR uname --></b>.<p>
-Your NPCs:
-<hr>
+<div class=formbox>
 <table border=0 cellpadding=4>
 <tr><td></td>
     <td><b>Name</b></td>
@@ -23,8 +24,8 @@ Your NPCs:
     <td><!-- TMPL_IF npcactive -->X<!-- TMPL_ELSE --><!-- /TMPL_IF --></td>
 </tr>
 <!-- /TMPL_LOOP -->
-</table>
-<hr>
+</table></div>
+<p>
 <a href="/addnpc">add new</a> <a href="/">main</a>
 </body>
 </html>

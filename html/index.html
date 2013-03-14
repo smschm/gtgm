@@ -1,9 +1,11 @@
 <!-- TMPL_IF loggedin -->
 <html>
   <head>
+<link rel="stylesheet" type="text/css" href="main.css">
 <title>Menu</title>
 </head>
 <body>
+<h1>Menu</h1>
 Hello <b><!-- TMPL_VAR uname --></b>.
 <ul>
   <li><a href="/leaderboard">Look at the current leaderboard</a>
@@ -19,10 +21,8 @@ Hello <b><!-- TMPL_VAR uname --></b>.
 <title>Menu</title>
 </head>
 <body>
-<ul>
-  <li><a href="/login">Log in</a>
-  <li><a href="/leaderboard">Leaderboard</a>
-</ul>
+<a href="/login">Log in</a>
+<a href="/leaderboard">Leaderboard</a>
 </body>
 </html>
 <!-- /TMPL_IF -->

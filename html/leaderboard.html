@@ -1,24 +1,29 @@
 <html>
   <head>
+<link rel="stylesheet" type="text/css" href="main.css">
 <title>Leaderboard</title>
 </head>
 <body>
+<h1>Leaderboard</h1>
+<div class="formbox">
 <table border=0 cellpadding=4>
-<tr><td></td>
-    <td><b>Rating</b></td>
-    <td><b>NPC Name</b></td>
-    <td><b>Owner</b></td>
-    <td><b>Description</b></td>
-    <td><b>Ping</b></td></tr>
+<tr class="lbheading"><td></td>
+    <td>Rating</td>
+    <td>NPC Name</td>
+    <td>Owner</td>
+    <td>Description</td>
+    <td>Ping</td></tr>
 <!-- TMPL_LOOP rows -->
-<tr><td align=right><font size="+2"><!-- TMPL_VAR rank --></font></td>
-    <td align=right><!-- TMPL_VAR rating --></td>
-    <td><!-- TMPL_VAR npcname --></td>
-    <td><!-- TMPL_VAR owner --></td>
-    <td><!-- TMPL_VAR npcdesc --></td>
+<tr><td align=right class="lbrank"><!-- TMPL_VAR rank --></td>
+    <td align=right class="lbrating"><!-- TMPL_VAR rating --></td>
+    <td class="lbname"><!-- TMPL_VAR npcname --></td>
+    <td class="lbowner"><!-- TMPL_VAR owner --></td>
+    <td class="lbdesc"><!-- TMPL_VAR npcdesc --></td>
     <td><!-- TMPL_VAR ping --></td>
 </tr>
 <!-- /TMPL_LOOP -->
 </table>
+</div><p>
+<a href="/">main</a>
 </body>
 </html>

@@ -1,17 +1,23 @@
 <html>
   <head>
+<link rel="stylesheet" type="text/css" href="main.css">
 <title>Add an NPC</title>
 </head>
 <body>
-<form method="POST" action="/doaddnpc">
+<h1>Add an NPC</h1>
+<!--<div class="formbox">-->
+<form method="POST" action="/doaddnpc" class="formbox">
   <table>
     <tr><td>Name:</td><td><input type="text" name="npcname"></td></tr>
-    <tr><td>Description:</td><td><input type="text" name="npcdesc"> (optional)</td></tr>
-    <tr><td>Hostname:</td><td><input type="text" name="npchost"> (only if different from your default host)</td></tr>
+    <tr><td>Description:</td><td><input type="text" name="npcdesc">
+	<span class="note">optional</span></td></tr>
+    <tr><td>Hostname:</td><td><input type="text" name="npchost">
+	<span class="note">defaults to your user host if blank</span></td></tr>
     <tr><td>Port:</td><td><input type="text" name="npcport"></td></tr>
     <tr><td>Activate?</td><td><input type="checkbox" name="npcactive" checked="true" value="yes"></td></tr>
-    <tr><td><input type="submit"></td></tr>
+    <tr><td><input type="submit" value="add"></td></tr>
   </table>
 </form>
+<!--</div>-->
 </body>
 </html>

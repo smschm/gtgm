@@ -1,0 +1,44 @@
+body {
+    background-color: #eee;
+    color: #000;
+    font-family: 'Source Sans Pro',Helvetica,sans-serif;
+}
+
+h1 {
+    color: #600;
+    font-size: 150%;
+}
+
+a {
+    color: #900;
+}
+
+.lbheading {
+    font-size: 70%;
+    font-weight: bold;
+    color: #600;
+}
+
+.lbrank {}
+
+.lbrating {
+    font-size:120%;
+    font-weight:bold;
+}
+
+.lbowner {
+    font-size: 70%;
+    color: #666;
+}
+
+.formbox {
+    border: 1px solid black;
+    padding: 6px;
+    background-color: #fff;
+    display: inline-block;
+}
+
+.note {
+    color: #666;
+    font-size: 70%;
+}

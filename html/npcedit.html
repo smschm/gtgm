@@ -1,18 +1,22 @@
 <html>
   <head>
-<title>NPC Editing</title>
+<link rel="stylesheet" type="text/css" href="main.css">
+<title>NPC Management</title>
 </head>
 <body>
+<h1>NPC Management</h1>
 <!-- TMPL_IF valid -->
 Editing <b><!-- TMPL_VAR npcname --></b>:
-
+<p>
+<div class="formbox">
 <form method="POST" action="/donpcedit">
   <table>
   <tr><td>Description:</td><td><input type="text" name="newdesc" value="<!-- TMPL_VAR curdesc -->"></td></tr>
   <tr><td>Host:</td><td><input type="text" name="newhost" value="<!-- TMPL_VAR curhost -->"></td></tr>
   <tr><td>Port:</td><td><input type="text" name="newport" value="<!-- TMPL_VAR curport -->"></td></tr>
-  <tr><td><input type="submit"><input type="hidden" name="id" value="<!-- TMPL_VAR id -->"></td></tr>
+  <tr><td><input type="submit" value="edit"><input type="hidden" name="id" value="<!-- TMPL_VAR id -->"></td></tr>
 </form>
+</div>
 <!-- TMPL_ELSE -->
 This bot doesn't belong to you. What funny business is this?
 <!-- /TMPL_IF -->
