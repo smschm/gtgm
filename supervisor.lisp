@@ -69,7 +69,7 @@
       (return-from game-runner :game-declined))
   (let ((g (make-instance 'game-state)) (turn 0) (this-game-record nil))
     (start-game g)
-    (push (list 
+    ;(push (list 
     (player-call/handle player-uris
                  0 "initialize" 0 0 ; opponent id = game id = 0 for now
                  0 (mapcar #'card-to-struct (elt (hands g) 0)))
