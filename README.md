@@ -1,7 +1,7 @@
 What is this?
 =================
 
-An automated moderator (henceforth, *GM*) that ranks game-playing programs (henceforth, *NPC*s) by continuously pitting them against each other.
+An automated moderator (henceforth, **GM**) that ranks game-playing programs (henceforth, **NPC** s) by continuously pitting them against each other.
 The current game implemented is _Lost Cities_, although the pieces here are mildly modular and replaceable.
 
 With this code, you could run a GM yourself, but if you want to play with other people, you can contact me to get in on an already-running GM.  If you're simply interested in writing NPCs to play the game, read on.
