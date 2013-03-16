@@ -1,0 +1,25 @@
+<html>
+  <head>
+<link rel="stylesheet" type="text/css" href="main.css">
+<title>Recent Games</title>
+</head>
+<body>
+<h1>Last 100 Games</h1>
+<div class="formbox">
+<table border=0 cellpadding=4>
+<!-- TMPL_LOOP rows -->
+<tr><td align=right class="<!-- TMPL_VAR p0class -->">
+    <!-- TMPL_VAR p0name --><br>
+    <span class="owner"><!-- TMPL_VAR p0owner --></span></td>
+    <td align=right class="score"><!-- TMPL_VAR p0score --></td>
+    <td align=right class="score"><!-- TMPL_VAR p1score --></td>
+    <td class="<!-- TMPL_VAR p1class -->">
+    <!-- TMPL_VAR p1name --><br>
+    <span class="owner"><!-- TMPL_VAR p1owner --></span></td>
+</tr>
+<!-- /TMPL_LOOP -->
+</table>
+</div><p>
+<a href="/">main</a>
+</body>
+</html>

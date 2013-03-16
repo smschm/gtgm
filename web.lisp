@@ -177,7 +177,7 @@
 ;;;;
 
 (defun/lock /leaderboard ()
-  (let ((results (sqlite:execute-to-list *db* "select * from npcs where active = 1 order by rating desc;")))
+  (let ((results (sqlite:execute-to-list *db* "select * from npcs order by rating desc;")))
     (with-output-to-string (s)
       (html-template:fill-and-print-template
        #p"html/leaderboard.html" `(:rows ,(loop for npc in results for rank from 1 collect
@@ -185,7 +185,10 @@
                                                  :npcname ,(fifth npc)
                                                  :owner ,(second npc)
                                                  :npcdesc ,(sixth npc)
-						 :ping ,(if (equal (ninth npc) 1) "*" ""))))
+						 :ping ,(if (equal (ninth npc) 1)
+                                    "yes"
+                                    "no")
+                         )))
        :stream s))))
 
 (defun add-leaderboard-to-handlers ()
@@ -295,6 +298,44 @@
          #p"html/winmatrix.html" (/winmatrix)
          :stream s))))
 
+;;;;
+
+(defun/lock /lastgames ()
+  (let* ((names (sqlite:execute-to-list *db* "select id, name, owner from npcs;")))
+    `(:rows
+      ,(loop for i below 100
+          for g in gt-db::*game-record*
+          collect (let ((p0name (second (assoc (first g) names)))
+                        (p1name (second (assoc (second g) names)))
+                        (p0owner (third (assoc (first g) names)))
+                        (p1owner (third (assoc (second g) names)))
+                        (pclasses
+                         (cond
+                           ((equal (third g) :error)
+                            (if (= 0 (fourth g)) '("E" "-" "error" "win")
+                                '("-" "E" "win" "error")))
+                           ((= (fourth g) (fifth g))
+                            (list (fourth g) (fifth g) "tie" "tie"))
+                           ((> (fourth g) (fifth g))
+                            (list (fourth g) (fifth g) "win" "lose"))
+                           (t
+                            (list (fourth g) (fifth g) "lose" "win")))))
+                    `(:p0class ,(third pclasses) :p0name ,p0name :p0score ,(first pclasses)
+                               :p1score ,(second pclasses) :p1class ,(fourth pclasses) :p1name ,p1name
+                               :p0owner ,p0owner :p1owner ,p1owner))))))
+
+(defun add-lastgames-to-handlers ()
+  (hunchentoot:define-easy-handler (lastgames :uri "/lastgames") ()
+    (setf (hunchentoot:content-type*) "text/html")
+    (with-output-to-string (s)
+      (html-template:fill-and-print-template
+         #p"html/lastgames.html" (/lastgames)
+         :stream s))))
+
+;;;;
+
+(defun/lock /ratinggraph (stream)
+  (with-canvas (:width 800 :height 600)
 (defun h-start ()
   (setf *acceptor*
         (hunchentoot:start

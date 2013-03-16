@@ -42,3 +42,29 @@ a {
     color: #666;
     font-size: 70%;
 }
+
+.score {
+    font-size: 140%;
+    font-weight: bold;
+}
+
+.win {
+    font-weight: bold;
+}
+
+.lose {
+    color: #666;
+}
+
+.tie {}
+
+.error {
+    color: #c00;
+    font-weight: bold;
+}
+
+.owner {
+    color: #666;
+    font-size: 60%;
+    font-weight: normal;
+}

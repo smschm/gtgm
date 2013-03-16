@@ -67,9 +67,8 @@
   (if (not (and (player-call/ignore player-uris 0 "startGame")
                 (player-call/ignore player-uris 1 "startGame")))
       (return-from game-runner :game-declined))
-  (let ((g (make-instance 'game-state)) (turn 0) (this-game-record nil))
+  (let ((g (make-instance 'game-state)) (turn 0)); (this-game-record nil))
     (start-game g)
-    ;(push (list 
     (player-call/handle player-uris
                  0 "initialize" 0 0 ; opponent id = game id = 0 for now
                  0 (mapcar #'card-to-struct (elt (hands g) 0)))
@@ -93,13 +92,8 @@
                      draw-from (get-xml-rpc-struct-member r0 :|draw_from|)
                      card-played (elt (elt (hands g) turn) card-ix))
              (error (e)
-	       (let ((error-description (with-output-to-string (s) (describe e s))))
-		 (push (list :error turn error-description) this-game-record)
-		 (push this-game-record *game-record*)
-		 (error 'player-error :offender turn :description error-description))))
-
-           ;(princ (list card-ix play-to draw-from))
-           ;(describe g)
+               (let ((error-description (with-output-to-string (s) (describe e s))))
+                 (return-from game-runner (list :error turn error-description)))))
            (if (equalp :discarded-instead
                        (place-card g turn card-ix play-to))
                (setf play-to :discard))
@@ -113,17 +107,16 @@
                                          (if (< draw-from 0) :deck :discard)
                                          :pile-ix draw-from))
                (setf draw-from -1))
-	   (push (list turn card-played play-to draw-from) this-game-record)
+           ;(push (list turn card-played play-to draw-from) this-game-record)
            (player-call/ignore player-uris (- 1 turn) "opponentPlay" (card-to-struct card-played)
                         play-to-raw draw-from)
            (if (null (deck g)) (return-from outer nil))
            (setf turn (- 1 turn)))))
     (let ((scores (score-game g)))
-      (push (list :end (car scores) (cadr scores)) this-game-record)
-      (push this-game-record *game-record*)
+      ;(push (list :end (car scores) (cadr scores)) gt-db::*game-record*)
       (player-call/ignore player-uris 0 "gameEnd" (car scores) (cadr scores))
       (player-call/ignore player-uris 1 "gameEnd" (car scores) (cadr scores))
-      scores)))
+      (list :end (car scores) (cadr scores)))))
 
 (defun nil-or-empty (x)
   (or (null x) (equal x "")))
@@ -194,25 +187,31 @@
     (cond
       ((null result) nil)
       ((equal result :game-declined) :game-declined)
-      ((= (length result) 2)
-       (progn (if (equal (first result) :error)
-		  (setf result-code "error"
-			winner (- 1 (second result))
-			;; maps errorer to -1, non-errorer to 0:
-			score0 (- (second result) 1) ; these are just
-			score1 (- (second result))) ; being a dick
-		  (if (= (first result) (second result))
-		      (setf result-code "tie"
-			    winner -1
-			    score0 (first result)
-			    score1 (second result))
-		      (setf result-code "win"
-			    winner (if (> (first result) (second result)) 0 1)
-			    score0 (first result)
-			    score1 (second result))))
+      (t
+       (progn
+         (princ result) (terpri)
+         (push (append (list p0 p1) result) gt-db::*game-record*)
+         (if (equal (first result) :error)
+             (setf result-code "error"
+                   winner (- 1 (second result))
+                   ;; maps errorer to -1, non-errorer to 0:
+                   score0 (- (second result) 1) ; these are just
+                   score1 (- (second result))) ; being a dick
+             (if (= (second result) (third result))
+                 (setf result-code "tie"
+                       winner -1
+                       score0 (second result)
+                       score1 (third result))
+                 (setf result-code "win"
+                       winner (if (> (second result) (third result)) 0 1)
+                       score0 (second result)
+                       score1 (third result))))
 	      (gt-db::lock/execute-non-query
 		 "insert into games (id0, id1, result, score0, score1) values (?,?,?,?,?);"
 		 p0 p1 result-code score0 score1)
+          ;(setf gt-db::*game-record*
+          ;      (cons (list p0 p1 score0 score1) gt-db::*game-record*))
+          ;(push (list p0 p1 score0 score1) gt-db::*game-record*)
 	      (update-elo p0 p1 winner)))
       (t :guru-meditation))))
 
